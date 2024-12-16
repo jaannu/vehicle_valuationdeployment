@@ -1,1 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Valuation</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Vehicle Valuation Chatbot</h1>
 
+        <!-- CSV Upload Form -->
+        <h3>Upload CSV File:</h3>
+        <form action="/upload_csv" method="POST" enctype="multipart/form-data">
+            <label for="csvFile">Choose a CSV file:</label>
+            <input type="file" id="csvFile" name="file" accept=".csv" required />
+            <button type="submit">Submit</button>
+        </form>
+
+        <!-- Image Upload Form -->
+        <h3>Upload Vehicle Image:</h3>
+        <form action="/upload_image" method="POST" enctype="multipart/form-data">
+            <label for="imageFile">Choose an image:</label>
+            <input type="file" id="imageFile" name="file" accept="image/*" required />
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
