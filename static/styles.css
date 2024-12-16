@@ -1,1 +1,97 @@
+/* Global Styling */
+body {
+    font-family: 'Arial', sans-serif; /* Clean and professional font */
+    background-color: #f4f8fb; /* Light blue background */
+    color: #333; /* Dark text for readability */
+    margin: 0;
+    padding: 0;
+}
 
+/* Container Styling */
+.container {
+    max-width: 800px; /* Limit width for better readability */
+    margin: 50px auto; /* Center container */
+    padding: 20px;
+    background-color: #ffffff; /* White background for content */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    border-radius: 8px; /* Rounded corners */
+    border: 1px solid #ddd; /* Soft border */
+}
+
+/* Heading Styling */
+h1, h2, h3 {
+    font-style: italic; /* Italics for all headings */
+    text-align: center; /* Center align headings */
+    color: #0056b3; /* Navy blue color for headings */
+    margin-bottom: 20px;
+}
+
+/* Add a decorative border under the headings */
+h1 {
+    border-bottom: 3px solid #0056b3; /* Accent border */
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 30px;
+}
+
+/* Styling for Buttons */
+button {
+    display: block;
+    margin: 20px auto; /* Center align buttons */
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #0056b3; /* Navy blue button */
+    color: #ffffff; /* White text */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #003f7f; /* Darker blue on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+/* Styling Links */
+a {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #003f7f;
+}
+
+/* Form Inputs */
+input[type="file"], input[type="text"], select {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+input:focus {
+    outline: none;
+    border-color: #0056b3;
+    box-shadow: 0 0 4px rgba(0, 86, 179, 0.5);
+}
+
+/* Footer Styling */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #0056b3; /* Navy blue footer */
+    color: #ffffff;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    margin-top: 30px;
+    border-top: 2px solid #003f7f;
+}
