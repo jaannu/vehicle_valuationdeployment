@@ -1,4 +1,3 @@
-
 import os
 from flask import Flask, request, jsonify, render_template, send_from_directory
 import pandas as pd
@@ -28,18 +27,117 @@ def allowed_file(filename, allowed_extensions):
 
 def preprocess_input(data):
     # Example preprocessing steps:
-    # 1. Rename columns to match model's expected column names
     data.columns = [col.strip() for col in data.columns]  # Strip any extra spaces
-    data['vehicle_type'] = data['vehicle_type'].astype('category').cat.codes
-    data = data[['manufacture_year','mileage', 'vehicle_type']] 
-    # 2. Apply any necessary transformations or scaling
-    # Example: data['Column1'] = scaler.transform(data['Column1'])
+    data = data[['RESIDUAL_QUOTE_AMOUNT', 'ASSET_COST', 'LOAN_AMOUNT','ACTUAL_LOAN_AMOUNT']]
     return data
+
+# Valuation Calculation Function
+def calculate_valuation(base_price, manufacture_year, mileage, fuel_type, brand, rto_number):
+    # Constants
+    CURRENT_YEAR = 2024
+    AGE_PENALTY_RATE = 0.05  # 5% depreciation per year
+    MILEAGE_PENALTY_RATE = 0.02  # 2% depreciation for every 10,000 km
+    ELECTRIC_BONUS = 30000  # High bonus for electric vehicles
+    DIESEL_PENALTY = 10000  # Penalty for diesel vehicles
+    LUXURY_BRANDS = ['Mercedes', 'BMW', 'Audi', 'Toyota', 'Jaguar', 'Rolls Royce']  # Example luxury brands
+    BRAND_BONUS = 0.05  # 5% extra for luxury brands
+
+    # State-wise adjustment factors based on RTO number
+    STATE_ADJUSTMENT = {
+    'AP': 1.03,  # Andhra Pradesh: 3% increase
+    'AR': 0.95,  # Arunachal Pradesh: 5% decrease
+    'AS': 1.02,  # Assam: 2% increase
+    'BR': 0.90,  # Bihar: 10% decrease
+    'CG': 0.92,  # Chhattisgarh: 8% decrease
+    'GA': 1.06,  # Goa: 6% increase
+    'GJ': 0.90,  # Gujarat: 10% decrease
+    'HR': 1.04,  # Haryana: 4% increase
+    'HP': 1.01,  # Himachal Pradesh: 1% increase
+    'JH': 0.92,  # Jharkhand: 8% decrease
+    'KA': 0.95,  # Karnataka: 5% decrease
+    'KL': 1.02,  # Kerala: 2% increase
+    'MP': 0.94,  # Madhya Pradesh: 6% decrease
+    'MH': 1.10,  # Maharashtra: 10% increase
+    'MN': 0.93,  # Manipur: 7% decrease
+    'ML': 0.94,  # Meghalaya: 6% decrease
+    'MZ': 0.93,  # Mizoram: 7% decrease
+    'NL': 0.94,  # Nagaland: 6% decrease
+    'OR': 0.96,  # Odisha: 4% decrease
+    'PB': 1.03,  # Punjab: 3% increase
+    'RJ': 0.97,  # Rajasthan: 3% decrease
+    'SK': 1.00,  # Sikkim: No adjustment
+    'TN': 1.05,  # Tamil Nadu: 5% increase
+    'TS': 1.03,  # Telangana: 3% increase
+    'TR': 0.95,  # Tripura: 5% decrease
+    'UP': 0.85,  # Uttar Pradesh: 15% decrease
+    'UK': 0.98,  # Uttarakhand: 2% decrease
+    'WB': 1.08,  # West Bengal: 8% increase
+    'DL': 1.00,  # Delhi: No adjustment
+    'JK': 0.92,  # Jammu & Kashmir: 8% decrease
+    'LD': 1.00,  # Lakshadweep: No adjustment
+    'PY': 1.02,  # Puducherry: 2% increase
+    'CH': 1.01,  # Chandigarh: 1% increase
+    'AN': 0.98,  # Andaman & Nicobar Islands: 2% decrease
+    'DN': 0.95,  # Daman & Diu: 5% decrease
+    'DD': 0.95,  # Dadra & Nagar Haveli: 5% decrease
+    'LA': 0.93,  # Ladakh: 7% decrease
+}
+
+    # Extract state from RTO number
+    state_code = rto_number[:2].upper()  # Assume first two characters are the state code
+
+    # Determine state adjustment factor
+    state_factor = STATE_ADJUSTMENT.get(state_code, 1.00)  # Default to no adjustment if state not found
+
+    # Calculate age penalty (as a percentage of base price)
+    age_years = CURRENT_YEAR - manufacture_year
+    age_penalty = base_price * min(AGE_PENALTY_RATE * age_years, 0.6)  # Max penalty of 60%
+
+    # Calculate mileage penalty (2% per 10,000 km)
+    mileage_penalty = (mileage // 10000) * base_price * MILEAGE_PENALTY_RATE
+    fuel_bonus = 0
+    if fuel_type.lower() == "electric":
+        fuel_bonus = ELECTRIC_BONUS
+    brand_bonus = 0
+    if brand in LUXURY_BRANDS:
+        brand_bonus = base_price * BRAND_BONUS
+
+    # Apply state adjustment
+    state_adjustment = base_price * (state_factor - 1)
+
+    # Calculate final valuation
+    valuation = base_price - age_penalty - mileage_penalty + fuel_bonus + brand_bonus + state_adjustment
+
+    # Ensure the valuation doesn't go below 0
+    valuation = max(valuation, 0)
+
+    return valuation
+
 
 # Home Route
 @app.route('/')
 def index():
     return render_template('mainpage.html')
+
+# Vehicle Valuation Prediction
+@app.route('/predict_vehicle', methods=['POST'])
+def predict_vehicle():
+    try:
+        # Collect form data
+        model = request.form.get('model')
+        brand = request.form.get('brand')
+        rto_number = request.form.get('rto_number')
+        mileage = int(request.form.get('mileage'))
+        manufacture_year = int(request.form.get('manufacture_year'))
+        fuel_type = request.form.get('fuel_type')
+        base_price = int(request.form.get('base_price'))
+
+        # Call the valuation calculation function
+        valuation = calculate_valuation(base_price, manufacture_year, mileage, fuel_type, brand,rto_number)
+
+        return jsonify({'valuation': f"₹{valuation:,.0f}"}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # CSV Upload and Valuation Prediction
 @app.route('/upload_csv', methods=['POST'])
